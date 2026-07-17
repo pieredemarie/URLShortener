@@ -34,20 +34,51 @@ func NewSQLiteRepo(dbPath string) (*SQLiteRepo, error) {
 	return &SQLiteRepo{db: db}, nil
 }
 
-func (r *SQLiteRepo) CreateShortLink(ctx context.Context, shortLink, longURL string) error {
+func (r *SQLiteRepo) Create(ctx context.Context, longURL string) (uint64, error) {
+	result, err := r.db.ExecContext(ctx,
+		"INSERT INTO urls (long_url, short_code) VALUES (?, '')",
+		longURL,
+	)
+
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(id), nil
+}
+
+func (r *SQLiteRepo) UpdateShortCode(
+	ctx context.Context,
+	id uint64,
+	shortCode string,
+) error {
+
 	_, err := r.db.ExecContext(ctx,
-		"INSERT into urls (short_code, long_url) VALUES (?, ?)",
-		shortLink, longURL,
+		"UPDATE urls SET short_code = ? WHERE id = ?",
+		shortCode,
+		id,
 	)
 
 	return err
 }
 
-func (r *SQLiteRepo) GetLongLink(ctx context.Context, shortUrl string) (string, error) {
+func (r *SQLiteRepo) GetLongLink(
+	ctx context.Context,
+	shortCode string,
+) (string, error) {
+
 	var longURL string
 
 	err := r.db.QueryRowContext(ctx,
-		"SELECT long_url FROM urls WHERE short_code = ?", shortUrl).Scan(&longURL)
+		"SELECT long_url FROM urls WHERE short_code = ?",
+		shortCode,
+	).Scan(&longURL)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", errors.New("not found")
 	}
@@ -55,20 +86,21 @@ func (r *SQLiteRepo) GetLongLink(ctx context.Context, shortUrl string) (string, 
 	return longURL, err
 }
 
-func (r *SQLiteRepo) GetOrCreate(ctx context.Context, shortCode, longURL string) (string, error) {
-	_, err := r.db.ExecContext(ctx,
-		"INSERT OR IGNORE INTO urls (short_code, long_url) VALUES (?, ?)",
-		shortCode, longURL,
-	)
-	if err != nil {
-		return "", err
-	}
+func (r *SQLiteRepo) GetShortLink(
+	ctx context.Context,
+	longURL string,
+) (string, error) {
 
-	var existingCode string
-	err = r.db.QueryRowContext(ctx,
+	var shortCode string
+
+	err := r.db.QueryRowContext(ctx,
 		"SELECT short_code FROM urls WHERE long_url = ?",
 		longURL,
-	).Scan(&existingCode)
+	).Scan(&shortCode)
 
-	return existingCode, err
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", errors.New("not found")
+	}
+
+	return shortCode, err
 }

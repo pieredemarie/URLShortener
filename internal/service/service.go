@@ -17,11 +17,15 @@ type URLRepository interface {
 
 type URLService interface {
 	GetOrCreate(ctx context.Context, longUrl string) (string, error)
-	GetLongLink(ctx context.Context, longUrl string) (string, error)
+	GetLongLink(ctx context.Context, shortCode string) (string, error)
 }
 
 type service struct {
 	repo URLRepository
+}
+
+func (s *service) GetLongLink(ctx context.Context, shortCode string) (string, error) {
+	return s.repo.GetLongLink(ctx, shortCode)
 }
 
 func (s *service) GetOrCreate(

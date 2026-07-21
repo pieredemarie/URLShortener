@@ -33,7 +33,10 @@ func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//some function to validate url
+	if !h.service.IsValidUrl(req.URL) {
+		http.Error(w, "url is not valid", http.StatusBadRequest)
+		return
+	}
 
 	shortUrl, err := h.service.GetOrCreate(ctx, req.URL)
 	if err != nil {

@@ -3,6 +3,7 @@ package service
 import (
 	"URLShortener/internal/generator"
 	"context"
+	"net/url"
 )
 
 type URLRepository interface {
@@ -18,6 +19,7 @@ type URLRepository interface {
 type URLService interface {
 	GetOrCreate(ctx context.Context, longUrl string) (string, error)
 	GetLongLink(ctx context.Context, shortCode string) (string, error)
+	IsValidUrl(longUrl string) bool
 }
 
 type service struct {
@@ -54,4 +56,21 @@ func (s *service) GetOrCreate(
 	}
 
 	return shortCode, nil
+}
+
+func (s *service) IsValidUrl(longUrl string) bool {
+	parsedUrl, err := url.Parse(longUrl)
+	if err != nil {
+		return false
+	}
+
+	if parsedUrl.Scheme != "http" && parsedUrl.Scheme != "https" {
+		return false
+	}
+
+	if parsedUrl.Host == "" {
+		return false
+	}
+
+	return true
 }

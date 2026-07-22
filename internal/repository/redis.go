@@ -29,6 +29,7 @@ func NewRedisRepo(addr, password string, db int, ttl time.Duration) (*RedisRepo,
 
 	ctx := context.Background()
 	if err := client.Ping(ctx).Err(); err != nil {
+		_ = client.Close()
 		return nil, fmt.Errorf("failed to connect redis: %w", err)
 	}
 

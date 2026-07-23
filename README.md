@@ -33,19 +33,32 @@ DB_PATH=/app/data/urls.db
 
 
 ## Пример работы 
-Создание ссылки
+```bash
 curl -X POST http://localhost:8080/shorten \
--H "Content-Type: application/json" \
--d '{"url":"https://google.com"}'
-Ответ:
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://google.com"}'
+```
+
+**Ответ:**
+
+```json
 {
   "short-url":"1"
 }
-Переход:
+```
+
+**Переход:**
+
+```bash
 curl -I http://localhost:8080/1
-Ответ:
+```
+
+**Ответ:**
+
+```
 HTTP/1.1 301 Moved Permanently
 Location: https://google.com
+```
 ---
 
 ## Архитектура
@@ -109,6 +122,7 @@ Location: https://google.com
 HTTP/1.1 301 Moved Permanently
 Location: https://google.com
 ## Схема БД
+```sql
 CREATE TABLE urls (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     short_code VARCHAR(10) UNIQUE NOT NULL,
@@ -116,3 +130,4 @@ CREATE TABLE urls (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     clicks INTEGER DEFAULT 0
 );
+```

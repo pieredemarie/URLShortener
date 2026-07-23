@@ -16,6 +16,11 @@ type URLRepository interface {
 	GetShortLink(ctx context.Context, longURL string) (string, error)
 }
 
+type CacheRepository interface {
+	GetLongLink(ctx context.Context, shortCode string) (string, error)
+	SetLongLink(ctx context.Context, shortCode, longURL string) error
+}
+
 type URLService interface {
 	GetOrCreate(ctx context.Context, longUrl string) (string, error)
 	GetLongLink(ctx context.Context, shortCode string) (string, error)
@@ -23,11 +28,24 @@ type URLService interface {
 }
 
 type service struct {
-	repo URLRepository
+	repo  URLRepository
+	cache CacheRepository
 }
 
 func (s *service) GetLongLink(ctx context.Context, shortCode string) (string, error) {
-	return s.repo.GetLongLink(ctx, shortCode)
+	longURL, err := s.cache.GetLongLink(ctx, shortCode)
+	if err == nil {
+		return longURL, nil
+	}
+
+	longURL, err = s.repo.GetLongLink(ctx, shortCode)
+	if err != nil {
+		return "", err
+	}
+
+	_ = s.cache.SetLongLink(ctx, shortCode, longURL)
+
+	return longURL, nil
 }
 
 func (s *service) GetOrCreate(
@@ -54,6 +72,8 @@ func (s *service) GetOrCreate(
 	if err != nil {
 		return "", err
 	}
+
+	_ = s.cache.SetLongLink(ctx, longURL, shortCode)
 
 	return shortCode, nil
 }

@@ -13,7 +13,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /app
 RUN mkdir -p /app/data
 
-COPY --from=builder /app/urlshortener
+COPY --from=builder /app/urlshortener .
 
 EXPOSE 8080
-CMD ["./urshortener"]
+CMD ["./urlshortener"]

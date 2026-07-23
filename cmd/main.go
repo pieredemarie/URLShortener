@@ -46,7 +46,7 @@ func main() {
 	handler := handlers.New(svc)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("shorten", handler.Shorten)
+	mux.HandleFunc("/shorten", handler.Shorten)
 	mux.HandleFunc("/", handler.Redirect)
 
 	server := http.Server{

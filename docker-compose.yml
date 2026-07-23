@@ -1,28 +1,37 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: urlshortener-app
+
+    env_file:
+      - .env
+
     ports:
       - "8080:8080"
-    environment:
-      - REDIS_ADDR=redis:6379
-      - REDIS_PASSWORD=
-      - REDIS_TTL=24h
-      - DB_PATH=/app/data/urls.db
-      - PORT=8080
+
     volumes:
       - ./data:/app/data
+
     depends_on:
       - redis
+
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
+    container_name: urlshortener-redis
+
     ports:
       - "6379:6379"
+
     volumes:
       - redis_data:/data
+
     restart: unless-stopped
 
 volumes:

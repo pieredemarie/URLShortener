@@ -32,6 +32,13 @@ type service struct {
 	cache CacheRepository
 }
 
+func New(repo URLRepository, cache CacheRepository) URLService {
+	return &service{
+		repo:  repo,
+		cache: cache,
+	}
+}
+
 func (s *service) GetLongLink(ctx context.Context, shortCode string) (string, error) {
 	longURL, err := s.cache.GetLongLink(ctx, shortCode)
 	if err == nil {

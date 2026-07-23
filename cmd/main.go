@@ -1,6 +1,9 @@
 package main
 
 import (
+	"URLShortener/internal/handlers"
+	"URLShortener/internal/repository"
+	"URLShortener/internal/service"
 	"context"
 	"log"
 	"net/http"
@@ -8,14 +11,46 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
+	// Config from env
+	redisAddr := os.Getenv("REDIS_ADDR")
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+	redisDB := 0
+	redisTTL, _ := time.ParseDuration(os.Getenv("REDIS_TTL"))
+	dbPath := os.Getenv("DB_PATH")
+	port := os.Getenv("PORT")
+
+	// SQLite
+	sqliteRepo, err := repository.NewSQLiteRepo(dbPath)
+	if err != nil {
+		log.Fatal("Failed to init SQLite:", err)
+	}
+
+	redisRepo, err := repository.NewRedisRepo(redisAddr, redisPassword, redisDB, redisTTL)
+	if err != nil {
+		log.Fatal("Failed to init Redis:", err)
+	}
+
+	defer redisRepo.Close()
+
+	svc := service.New(sqliteRepo, redisRepo)
+
+	handler := handlers.New(svc)
+
 	mux := http.NewServeMux()
-	//mux.HandleFunc(...)
+	mux.HandleFunc("shorten", handler.Shorten)
+	mux.HandleFunc("/", handler.Redirect)
 
 	server := http.Server{
-		Addr:         ":8080", // TODO: from env file
+		Addr:         ":" + port,
 		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

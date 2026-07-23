@@ -68,3 +68,7 @@ func (r *RedisRepo) SetLongLink(ctx context.Context, shortCode, longURL string) 
 
 	return r.client.Set(ctx, key, data, r.ttl).Err()
 }
+
+func (r *RedisRepo) Close() error {
+	return r.client.Close()
+}

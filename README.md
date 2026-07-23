@@ -19,17 +19,23 @@
 - Docker
 - Docker Compose
 Запуск по команде:
+```bash
 docker compose up --build
-После запуска приложение доступно:
-http://localhost:8080
-Настройка через переменные окружения
-PORT=8080
+```
 
+После запуска приложение доступно:
+```
+http://localhost:8080
+```
+
+Настройка через переменные окружения:
+```env
+PORT=8080
 REDIS_ADDR=redis:6379
 REDIS_PASSWORD=
 REDIS_TTL=24h
-
 DB_PATH=/app/data/urls.db
+```
 
 
 ## Пример работы 

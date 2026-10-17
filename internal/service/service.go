@@ -80,7 +80,7 @@ func (s *service) GetOrCreate(
 		return "", err
 	}
 
-	_ = s.cache.SetLongLink(ctx, longURL, shortCode)
+	_ = s.cache.SetLongLink(ctx, shortCode, longURL)
 
 	return shortCode, nil
 }
